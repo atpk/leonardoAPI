@@ -1,11 +1,13 @@
 import './App.css'
-import Prompt from './Prompt'
+import History from './components/History'
+import Prompt from './components/Prompt'
 
 function App() {
 
   return (
     <>
     <Prompt/>
+    <History/>
     </>
   )
 }

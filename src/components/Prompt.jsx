@@ -1,4 +1,5 @@
 import React, {  useState } from "react";
+import { imageData } from "./data";
 
 const Prompt = () => {
   const [prompt, setPrompt] = useState("");
@@ -66,24 +67,26 @@ const Prompt = () => {
   const handleShowImages = async () => {
     setLoading(true);
     try {
-      // Fetch the image URLs from another API
-      const url = `https://cloud.leonardo.ai/api/rest/v1/generations/${generationId}`;
-      const options = {
-        method: "GET",
-        headers: {
-          accept: "application/json",
-          authorization: `Bearer ${import.meta.env.VITE_LEONARDO_API_KEY}`,
-        },
-      };
-      const imageRes = await fetch(url, options);
+      // // Fetch the image URLs from another API
+      // const url = `https://cloud.leonardo.ai/api/rest/v1/generations/${generationId}`;
+      // const options = {
+      //   method: "GET",
+      //   headers: {
+      //     accept: "application/json",
+      //     authorization: `Bearer ${import.meta.env.VITE_LEONARDO_API_KEY}`,
+      //   },
+      // };
+      // const imageRes = await fetch(url, options);
 
-      if (!imageRes.ok) {
-        throw new Error("Failed to fetch images.");
-      }
+      // if (!imageRes.ok) {
+      //   throw new Error("Failed to fetch images.");
+      // }
 
-      const imageData = await imageRes.json();
+      // const imageData = await imageRes.json();
+      // console.log(imageData);
+      // setImages(imageData.generations_by_pk.generated_images);
       console.log(imageData);
-      setImages(imageData.generations_by_pk.generated_images);
+      setImages(imageData);
     } catch (err) {
       setError(err.message);
     } finally {
