@@ -1,72 +1,68 @@
-import React, { useState } from "react";
-import { history } from "./data";
+import React, { useEffect, useState } from "react";
+import ImageCard from "./ImageCard";
 
-const History = ({user_id}) => {
+const History = ({ user_id, history, setHistory }) => {
   const [loading, setLoading] = useState(false);
-  const [response, setResponse] = useState(null);
-  const [showImages, setShowImages] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setResponse(null);
-    setShowImages(false);
-  
-    try {
-      // Fetch user's prompt history and image data
-      const res = await fetch(`http://localhost:5000/get-images?user_id=${user_id}`);
-      const history = await res.json();
-      
-      setResponse(history.generations); // Assuming response contains `generations` with prompt and images
-      setShowImages(true);
-    } catch (err) {
-      console.log(err);
-      setError("Error fetching history");
-    } finally {
-      setLoading(false);
+  // Automatically load history when the component is mounted if history is empty
+  useEffect(() => {
+    if (history.length === 0) {
+      const fetchHistory = async () => {
+        setLoading(true);
+        setError(null);
+        
+        try {
+          const res = await fetch(`http://localhost:5000/get-images?user_id=${user_id}`);
+          const historyData = await res.json();
+          setHistory(historyData.generations);
+        } catch (err) {
+          console.log(err);
+          setError("Error fetching history");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchHistory();
     }
-  };  
+  }, [user_id, history, setHistory]);
+
+  const handleDownload = async (url, filename) => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+  };
 
   return (
     <div>
-      <h1>Prompt Submission</h1>
-      <form onSubmit={handleSubmit}>
-        <button type="submit">Load history</button>
-      </form>
+      <h3>Generated History:</h3>
 
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {showImages && (
+      {history.length > 0 && (
         <div>
-          <h3>Generated Images:</h3>
-          <div>
-            {response.map((entry, index) => (
-              <div key={index}>
-                <h4>{entry.prompt}</h4> {/* Display the prompt label */}
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "10px",
-                    marginTop: "10px",
-                  }}
-                >
-                  {entry.generated_images.map((image) => (
-                    <div key={image.id}>
-                      <img
-                        src={image.url}
-                        alt={`Generated from prompt ${entry.prompt}`}
-                        style={{ width: "200px", height: "auto" }}
-                      />
-                    </div>
-                  ))}
-                </div>
+          {history.map((entry, index) => (
+            <div key={index}>
+              <h4>{entry.prompt}</h4> {/* Display the prompt */}
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "10px",
+                  marginTop: "10px",
+                }}
+              >
+                {entry.generated_images.map((image, idx) => (
+                  <ImageCard key={image.id} image={image} index={idx} handleDownload={handleDownload} />
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

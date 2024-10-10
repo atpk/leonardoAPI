@@ -1,23 +1,20 @@
 import React, { useState } from "react";
 
-const Prompt = ({user_id}) => {
+const Prompt = ({ user_id, addNewPromptToHistory }) => {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
-  const [images, setImages] = useState([]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-  
+
     try {
-      // Mock image data as per the current prompt
+      // Mock image data for the current prompt
       const imageData = [
         { url: "https://cdn.leonardo.ai/users/0fd6ea2a-2358-491d-8ad3-a9da63b50e3a/generations/295e7ef0-ed65-4ae8-9834-d8cf5e71f6d1/Leonardo_Lightning_XL_create_designs_of_woolen_sweater_or_jack_0.jpg", id: "0" },
         { url: "https://cdn.leonardo.ai/users/0fd6ea2a-2358-491d-8ad3-a9da63b50e3a/generations/295e7ef0-ed65-4ae8-9834-d8cf5e71f6d1/Leonardo_Lightning_XL_create_designs_of_woolen_sweater_or_jack_1.jpg", id: "1" },
       ];
-  
-      setImages(imageData);
-  
+
       // Backend API call to save images with user_id and prompt
       await fetch("http://localhost:5000/save-images", {
         method: "POST",
@@ -28,20 +25,17 @@ const Prompt = ({user_id}) => {
           images: imageData
         })
       });
+
+      // Add the new prompt and images to the top of history
+      addNewPromptToHistory({ prompt, generated_images: imageData });
+
+      // Clear the input field after submission
+      setPrompt("");
     } catch (error) {
       console.error("Error saving images:", error);
     } finally {
       setLoading(false);
     }
-  }; 
-
-  const handleDownload = async (url, filename) => {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    const link = document.createElement("a");
-    link.href = window.URL.createObjectURL(blob);
-    link.download = filename;
-    link.click();
   };
 
   return (
@@ -59,35 +53,6 @@ const Prompt = ({user_id}) => {
       </form>
 
       {loading && <p>Loading...</p>}
-      {images.length > 0 && (
-        <div>
-          <h3>Generated Images:</h3>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "10px",
-              marginTop: "10px",
-            }}
-          >
-            {images.length === 0 && !loading && <p>No images available.</p>}
-            {images.map((image, index) => (
-              <div key={image.id}>
-                <img
-                  src={image.url}
-                  alt={`Generated ${index}`}
-                  style={{ width: "200px", height: "auto" }}
-                />
-                <button
-                  onClick={() => handleDownload(image.url, `user_${index}.jpg`)}
-                >
-                  Download Image {index + 1}
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
