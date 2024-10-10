@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { generateImage, getImageData } from "./utils/Leonardo";
 
 const Prompt = ({ user_id, addNewPromptToHistory }) => {
   const [prompt, setPrompt] = useState("");
@@ -9,11 +10,15 @@ const Prompt = ({ user_id, addNewPromptToHistory }) => {
     setLoading(true);
 
     try {
-      // Mock image data for the current prompt
-      const imageData = [
-        { url: "https://cdn.leonardo.ai/users/0fd6ea2a-2358-491d-8ad3-a9da63b50e3a/generations/295e7ef0-ed65-4ae8-9834-d8cf5e71f6d1/Leonardo_Lightning_XL_create_designs_of_woolen_sweater_or_jack_0.jpg", id: "0" },
-        { url: "https://cdn.leonardo.ai/users/0fd6ea2a-2358-491d-8ad3-a9da63b50e3a/generations/295e7ef0-ed65-4ae8-9834-d8cf5e71f6d1/Leonardo_Lightning_XL_create_designs_of_woolen_sweater_or_jack_1.jpg", id: "1" },
-      ];
+      // generate image request to leonardo AI
+      const generationId = await generateImage(prompt);
+      console.log("generation id: ", generationId);
+      // const generationId = "70b21993-fd3b-48da-b342-b1a97ca968ca";
+      // Clear the input field
+      setPrompt("");
+      // fetch images using generationId
+      const imageData = await getImageData(generationId);
+      console.log("image data: ", imageData);
 
       // Backend API call to save images with user_id and prompt
       await fetch("http://localhost:5000/save-images", {
@@ -28,9 +33,6 @@ const Prompt = ({ user_id, addNewPromptToHistory }) => {
 
       // Add the new prompt and images to the top of history
       addNewPromptToHistory({ prompt, generated_images: imageData });
-
-      // Clear the input field after submission
-      setPrompt("");
     } catch (error) {
       console.error("Error saving images:", error);
     } finally {
