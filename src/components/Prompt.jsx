@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const Prompt = () => {
+const Prompt = ({user_id}) => {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState([]);
@@ -8,20 +8,32 @@ const Prompt = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+  
     try {
-      // Simulating a call to your backend to upload and get image URLs
+      // Mock image data as per the current prompt
       const imageData = [
-        { url: "https://cdn.leonardo.ai/users/0fd6ea2a-2358-491d-8ad3-a9da63b50e3a/generations/295e7ef0-ed65-4ae8-9834-d8cf5e71f6d1/Leonardo_Lightning_XL_create_designs_of_woolen_sweater_or_jack_0.jpg", id: "0" }, // Custom filename served from your backend
+        { url: "https://cdn.leonardo.ai/users/0fd6ea2a-2358-491d-8ad3-a9da63b50e3a/generations/295e7ef0-ed65-4ae8-9834-d8cf5e71f6d1/Leonardo_Lightning_XL_create_designs_of_woolen_sweater_or_jack_0.jpg", id: "0" },
         { url: "https://cdn.leonardo.ai/users/0fd6ea2a-2358-491d-8ad3-a9da63b50e3a/generations/295e7ef0-ed65-4ae8-9834-d8cf5e71f6d1/Leonardo_Lightning_XL_create_designs_of_woolen_sweater_or_jack_1.jpg", id: "1" },
       ];
+  
       setImages(imageData);
+  
+      // Backend API call to save images with user_id and prompt
+      await fetch("http://localhost:5000/save-images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: user_id,
+          prompt: prompt,
+          images: imageData
+        })
+      });
     } catch (error) {
-      console.error("Error fetching images:", error);
+      console.error("Error saving images:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }; 
 
   const handleDownload = async (url, filename) => {
     const response = await fetch(url);
@@ -58,6 +70,7 @@ const Prompt = () => {
               marginTop: "10px",
             }}
           >
+            {images.length === 0 && !loading && <p>No images available.</p>}
             {images.map((image, index) => (
               <div key={image.id}>
                 <img
